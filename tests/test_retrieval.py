@@ -1,6 +1,7 @@
 import pytest
 
 from movie_finder.models import Chunk, ScoredChunk
+from movie_finder.pipeline import group_by_movie
 from movie_finder.retrieval.bm25 import BM25Retriever
 from movie_finder.retrieval.hybrid import HybridRetriever, reciprocal_rank_fusion
 
@@ -64,3 +65,17 @@ def test_bm25_finds_matching_chunk_and_ignores_case():
 def test_bm25_returns_nothing_without_a_match():
     chunks = [chunk("a#0", "a shark attacks"), chunk("b#0", "friends open a bakery"), chunk("c#0", "a robot paints")]
     assert BM25Retriever(chunks).search("spaceship", top_k=5) == []
+
+
+def test_group_by_movie_never_repeats_a_movie():
+    results = group_by_movie([scored("a#0", 0.9), scored("a#1", 0.8), scored("b#0", 0.7)], top_k=5)
+
+    assert [r.movie_id for r in results] == ["a", "b"]
+    assert [p.chunk.chunk_id for p in results[0].passages] == ["a#0", "a#1"]
+
+
+def test_group_by_movie_ranks_by_best_chunk_and_limits():
+    results = group_by_movie([scored("a#0", 0.2), scored("b#0", 0.9), scored("c#0", 0.5)], top_k=2)
+
+    assert [r.movie_id for r in results] == ["b", "c"]
+    assert results[0].score == 0.9

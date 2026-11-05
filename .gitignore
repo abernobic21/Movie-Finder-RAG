@@ -1,0 +1,15 @@
+# Data is downloaded separately, see README
+data/
+
+# Secrets
+.env
+
+# Raw per-query evaluation output
+results/raw/
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.venv/

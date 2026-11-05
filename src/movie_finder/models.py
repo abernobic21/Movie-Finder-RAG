@@ -10,3 +10,27 @@ class Document:
     genre: str | None = None
     origin: str | None = None
 
+
+@dataclass(frozen=True)
+class Chunk:
+    chunk_id: str
+    movie_id: str
+    title: str
+    year: int
+    text: str
+    position: int
+
+
+@dataclass(frozen=True)
+class ScoredChunk:
+    chunk: Chunk
+    score: float
+
+
+@dataclass(frozen=True)
+class MovieResult:
+    movie_id: str
+    title: str
+    year: int
+    score: float
+    passages: tuple[ScoredChunk, ...]

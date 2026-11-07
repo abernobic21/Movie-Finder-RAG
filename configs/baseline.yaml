@@ -11,3 +11,6 @@ retriever:
   type: hybrid
   rrf_k: 60
 candidate_chunks: 100
+llm:
+  type: groq
+  model: openai/gpt-oss-120b

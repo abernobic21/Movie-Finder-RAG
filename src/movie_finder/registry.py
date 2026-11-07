@@ -7,11 +7,14 @@ from movie_finder.chunking.token import TokenChunker
 from movie_finder.config import ComponentConfig
 from movie_finder.embedding.base import Embedder
 from movie_finder.embedding.sentence_transformer import SentenceTransformerEmbedder
+from movie_finder.generation.base import LLM
+from movie_finder.generation.groq import GroqLLM
 from movie_finder.models import Chunk
 from movie_finder.retrieval.base import Retriever
 from movie_finder.retrieval.bm25 import BM25Retriever
 from movie_finder.retrieval.hybrid import HybridRetriever
 from movie_finder.retrieval.vector import VectorRetriever
+from movie_finder.generation.groq import GroqLLM
 
 
 @dataclass(frozen=True)
@@ -37,6 +40,7 @@ def _hybrid(res: RetrieverResources, rrf_k: int = 60) -> Retriever:
 EMBEDDERS = {"sentence_transformer": SentenceTransformerEmbedder}
 CHUNKERS = {"token": TokenChunker}
 RETRIEVERS = {"vector": _vector, "bm25": _bm25, "hybrid": _hybrid}
+LLMS = {"groq": GroqLLM}
 
 
 def _lookup(options: dict, component: ComponentConfig, kind: str):
@@ -55,3 +59,6 @@ def build_chunker(config: ComponentConfig, embedder: Embedder) -> Chunker:
 
 def build_retriever(config: ComponentConfig, resources: RetrieverResources) -> Retriever:
     return _lookup(RETRIEVERS, config, "retriever")(resources, **config.params)
+
+def build_llm(config: ComponentConfig) -> LLM:
+    return _lookup(LLMS, config, "llm")(**config.params)

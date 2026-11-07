@@ -27,6 +27,7 @@ class PipelineConfig(BaseModel):
     embedder: ComponentConfig
     retriever: ComponentConfig
     candidate_chunks: int = 100
+    llm: ComponentConfig | None = None
 
 
 def load_config(path: Path) -> PipelineConfig:

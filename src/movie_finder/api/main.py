@@ -1,6 +1,8 @@
 import os
 from contextlib import asynccontextmanager
 from pathlib import Path
+from movie_finder.api.schemas import MovieResponse, PassageResponse, SearchRequest, SearchResponse
+
 
 from fastapi import FastAPI, HTTPException, Request
 from qdrant_client.http.exceptions import ApiException
@@ -27,3 +29,27 @@ def health(request: Request) -> dict[str, str]:
     except ApiException:
         raise HTTPException(status_code=503, detail="Qdrant is unreachable")
     return {"status": "ok"}
+
+@app.post("/search")
+def search(body: SearchRequest, request: Request) -> SearchResponse:
+    try:
+        movies = request.app.state.pipeline.search(body.query, top_k=body.top_k)
+    except ApiException:
+        raise HTTPException(status_code=503, detail="Qdrant is unreachable")
+
+    return SearchResponse(
+        results=[
+            MovieResponse(
+                movie_id=movie.movie_id,
+                title=movie.title,
+                year=movie.year,
+                score=movie.score,
+                passages=[
+                    PassageResponse(text=passage.chunk.text, score=passage.score)
+                    for passage in movie.passages
+                ],
+            )
+            for movie in movies
+        ]
+    )
+

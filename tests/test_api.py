@@ -1,3 +1,5 @@
+import json
+
 import pytest
 from fastapi.testclient import TestClient
 from qdrant_client.http.exceptions import ApiException
@@ -28,10 +30,15 @@ class StubQdrant:
             raise self.error
 
 
+def llm_reply(candidate, passage, explanation="because"):
+    return json.dumps({"candidate": candidate, "passage": passage, "explanation": explanation})
+
+
 @pytest.fixture
 def client():
     app.state.pipeline = StubPipeline()
     app.state.client = StubQdrant()
+    app.state.llm = None
     return TestClient(app)
 
 
@@ -85,3 +92,20 @@ def test_search_rejects_invalid_input(client, body):
 def test_search_returns_503_when_qdrant_is_down(client):
     app.state.pipeline = StubPipeline(error=ApiException("down"))
     assert client.post("/search", json={"query": "shark"}).status_code == 503
+
+
+def test_ask_returns_match_with_passage(client, fake_llm):
+    app.state.llm = fake_llm(llm_reply(1, 1, "a shark attacks"))
+
+    response = client.post("/ask", json={"query": "shark movie"})
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["match"] == {"movie_id": "jaws_1975", "title": "Jaws", "year": 1975}
+    assert body["passage"] == "A shark attacks."
+    assert body["explanation"] == "a shark attacks"
+    assert len(body["candidates"]) == 1
+
+
+def test_ask_can_return_no_match(client, fake_llm):
+    app.state.llm = fake_llm(llm_reply(None, None, "nothing fits"))

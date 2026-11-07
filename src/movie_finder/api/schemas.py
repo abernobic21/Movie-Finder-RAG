@@ -24,3 +24,20 @@ class MovieResponse(BaseModel):
 
 class SearchResponse(BaseModel):
     results: list[MovieResponse]
+
+
+class AskRequest(SearchRequest):
+    top_k: int = Field(default=5, ge=1, le=10)
+
+
+class MatchResponse(BaseModel):
+    movie_id: str
+    title: str
+    year: int
+
+
+class AskResponse(BaseModel):
+    match: MatchResponse | None
+    explanation: str
+    passage: str | None
+    candidates: list[MovieResponse]

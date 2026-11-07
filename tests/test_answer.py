@@ -69,3 +69,9 @@ def test_prompt_shows_only_the_best_passages(fake_llm):
 def test_rejects_invalid_llm_output(fake_llm, bad_reply):
     with pytest.raises(LLMError):
         answer("shark movie", CANDIDATES, fake_llm(bad_reply))
+
+
+def test_candidates_contain_only_the_passages_shown(fake_llm):
+    result = answer("shark movie", CANDIDATES, fake_llm(reply(1, 1)), passages_per_movie=2)
+
+    assert [len(movie.passages) for movie in result.candidates] == [2, 1]

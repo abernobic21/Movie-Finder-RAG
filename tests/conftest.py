@@ -35,6 +35,22 @@ class FakeEmbedder:
     def embed_query(self, text: str) -> list[float]:
         return self._vector(text)
 
+class FakeLLM:
+    """Returns a fixed reply and records the prompt it was given."""
+
+    def __init__(self, reply: str):
+        self.reply = reply
+        self.user = None
+
+    def generate(self, system, user, schema):
+        self.user = user
+        return self.reply
+
+
+@pytest.fixture
+def fake_llm():
+    return FakeLLM
+
 
 @pytest.fixture
 def fake_embedder(monkeypatch):

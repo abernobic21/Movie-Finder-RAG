@@ -34,3 +34,10 @@ class MovieResult:
     year: int
     score: float
     passages: tuple[ScoredChunk, ...]
+
+@dataclass(frozen=True)
+class Answer:
+    match: MovieResult | None
+    passage: str | None
+    explanation: str
+    candidates: tuple[MovieResult, ...]

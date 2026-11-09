@@ -1,4 +1,4 @@
-name: bge_small
+name: minilm
 data_path: data/processed/movies_5000.jsonl
 chunker:
   type: token
